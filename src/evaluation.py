@@ -15,7 +15,7 @@ import pandas as pd
 from sklearn.metrics import balanced_accuracy_score, confusion_matrix
 from sklearn.model_selection import TimeSeriesSplit
 
-from src.models import fit_predict, majority_predict, persistence_predict
+from src.models import fit_predict, fit_predict_rf, majority_predict, persistence_predict
 
 OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs"
 
@@ -101,8 +101,9 @@ def run_comparison(X_raw, X_eng, y) -> pd.DataFrame:
 
 
 def walk_forward_evaluate(X_raw, X_eng, y, n_splits=5, gap=1) -> pd.DataFrame:
-    """TimeSeriesSplit(n_splits, gap), expanding window, all 4 approaches per fold.
-    Majority is recomputed per fold from that fold's training labels.
+    """TimeSeriesSplit(n_splits, gap), expanding window, all 5 approaches per fold.
+    Majority is recomputed per fold from that fold's training labels. Includes the
+    Random Forest classifier on the engineered feature set as a 5th approach.
     """
     tscv = TimeSeriesSplit(n_splits=n_splits, gap=gap)
     rows = []
@@ -121,6 +122,7 @@ def walk_forward_evaluate(X_raw, X_eng, y, n_splits=5, gap=1) -> pd.DataFrame:
             "Majority Class": majority_predict(y_train, y_test.index),
             "Raw Features": fit_predict(Xr_train, y_train, Xr_test)[0],
             "Engineered Features": fit_predict(Xe_train, y_train, Xe_test)[0],
+            "Engineered (Random Forest)": fit_predict_rf(Xe_train, y_train, Xe_test)[0],
         }
 
         for approach, pred in preds.items():

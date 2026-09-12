@@ -101,6 +101,34 @@ hyperparameter tuning**. The scaler is part of the pipeline and is fit only on t
 
 All of the above is shown and asserted inline in `notebooks/stock_prediction.ipynb`.
 
+README updates for the two-model requirement
+
+Add this as a new subsection right after "### Model" (or wherever "## Model" sits in your README), and add the two new files to "## Project Structure". Nothing else in the README needs to change -- the four-way comparison table and its numbers are untouched.
+
+Second Model: Random Forest (web-version requirement)
+
+The assignment's web version adds a requirement the PDF omits: "Two models compared on the final feature set." The PDF's four-way comparison (above) already covers one model across two feature sets plus two baselines; to additionally satisfy the web version, a second classifier is trained on the same engineered feature set as the Logistic Regression model:
+
+StandardScaler -> RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=-1), no hyperparameter tuning. Trees don't need feature scaling, but the classifier is kept inside a Pipeline for symmetry with the other approaches. This was added after the primary experiment was frozen, and is reported as a supplementary comparison -- it does not replace or alter any of the four required rows above.
+
+Result, reported as-is:
+
+Approach	Accuracy	Balanced Accuracy	% Predicted Up
+Engineered Features (LR)	54.82%	50.91%	98.28%
+Engineered (Random Forest)	54.82%	52.97%	73.07%
+
+On the single split, Random Forest ties Logistic Regression exactly (574/1,047 correct each), while predicting Up far less often and reaching a somewhat higher balanced accuracy. In the walk-forward check, however, Random Forest performs worse than Logistic Regression (mean accuracy 51.7% vs LR's 54.8% and Majority Class's 55.3%; see outputs/walk_forward_results.csv). Given the walk-forward gap and that the single-split tie sits inside the ~3-point-wide 95% confidence intervals, Random Forest is not presented as a headline improvement -- if anything it generalizes slightly worse across folds than the linear model.
+
+Project Structure additions
+src/
+├── models.py    # (updated) adds make_rf_pipeline() / fit_predict_rf()
+notebooks/
+└── stock_prediction.ipynb   # (updated) adds Section 16b: Model Comparison on the Engineered Feature Set
+
+
+
+
+
 ## Results
 
 ### Four-way comparison (single chronological 80/20 split, test set, n=1,047)
