@@ -26,10 +26,16 @@ def make_pipeline() -> Pipeline:
 
 def make_rf_pipeline() -> Pipeline:
     """RandomForest doesn't need scaling, but kept in a Pipeline for symmetry
-    with the other approaches. No hyperparameter tuning."""
+    with the other approaches. No hyperparameter tuning.
+
+    n_jobs=1 (not -1): parallel tree aggregation in predict_proba is not
+    bit-reproducible across runs even with random_state set, since worker
+    completion order affects floating-point summation order. The dataset is
+    small enough that single-threaded fitting is fast.
+    """
     return Pipeline([
         ("scaler", StandardScaler()),
-        ("clf", RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=-1)),
+        ("clf", RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=1)),
     ])
 
 

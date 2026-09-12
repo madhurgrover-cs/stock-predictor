@@ -83,6 +83,35 @@ so the comparison isn't confounded by different usable row sets.
 `StandardScaler -> LogisticRegression(C=1.0, max_iter=1000)`, identical pipeline for both feature sets, **no
 hyperparameter tuning**. The scaler is part of the pipeline and is fit only on training data.
 
+### Second Model: Random Forest (web-version requirement)
+
+The assignment's web version adds a requirement the PDF omits: "Two models compared on the final feature set."
+The PDF's four-way comparison (below) already covers one model across two feature sets plus two baselines; to
+additionally satisfy the web version, a second classifier is trained on the same engineered feature set as the
+Logistic Regression model:
+
+`StandardScaler -> RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=1)`, no hyperparameter
+tuning. Trees don't need feature scaling, but the classifier is kept inside a `Pipeline` for symmetry with the
+other approaches. `n_jobs=1` (not `-1`): parallel tree aggregation in `predict_proba` is not bit-reproducible
+across runs even with `random_state` set, since worker completion order affects floating-point summation order;
+the dataset is small enough that single-threaded fitting is fast. This was added after the primary experiment was
+frozen, and is reported as a supplementary comparison -- it does not replace or alter any of the four required
+rows in the comparison table below.
+
+Result, reported as-is:
+
+| Approach | Accuracy | Balanced Accuracy | % Predicted Up |
+|---|---:|---:|---:|
+| Engineered Features (LR) | 54.82% | 50.91% | 98.28% |
+| Engineered (Random Forest) | 54.82% | 52.97% | 73.07% |
+
+On the single split, Random Forest ties Logistic Regression exactly (574/1,047 correct each), while predicting Up
+far less often and reaching a somewhat higher balanced accuracy. In the walk-forward check, however, Random Forest
+performs worse than Logistic Regression (mean accuracy 51.7% vs LR's 54.8% and Majority Class's 55.3%; see
+`outputs/walk_forward_results.csv`). Given the walk-forward gap and that the single-split tie sits inside the
+~3-point-wide 95% confidence intervals, Random Forest is not presented as a headline improvement -- if anything it
+generalizes slightly worse across folds than the linear model.
+
 ### Train/Test Split
 
 - Strict chronological 80/20 split on the cleaned, feature-complete dataset (5,233 usable rows) -- no shuffling.
@@ -100,34 +129,6 @@ hyperparameter tuning**. The scaler is part of the pipeline and is fit only on t
   cut off at `d`.
 
 All of the above is shown and asserted inline in `notebooks/stock_prediction.ipynb`.
-
-README updates for the two-model requirement
-
-Add this as a new subsection right after "### Model" (or wherever "## Model" sits in your README), and add the two new files to "## Project Structure". Nothing else in the README needs to change -- the four-way comparison table and its numbers are untouched.
-
-Second Model: Random Forest (web-version requirement)
-
-The assignment's web version adds a requirement the PDF omits: "Two models compared on the final feature set." The PDF's four-way comparison (above) already covers one model across two feature sets plus two baselines; to additionally satisfy the web version, a second classifier is trained on the same engineered feature set as the Logistic Regression model:
-
-StandardScaler -> RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=-1), no hyperparameter tuning. Trees don't need feature scaling, but the classifier is kept inside a Pipeline for symmetry with the other approaches. This was added after the primary experiment was frozen, and is reported as a supplementary comparison -- it does not replace or alter any of the four required rows above.
-
-Result, reported as-is:
-
-Approach	Accuracy	Balanced Accuracy	% Predicted Up
-Engineered Features (LR)	54.82%	50.91%	98.28%
-Engineered (Random Forest)	54.82%	52.97%	73.07%
-
-On the single split, Random Forest ties Logistic Regression exactly (574/1,047 correct each), while predicting Up far less often and reaching a somewhat higher balanced accuracy. In the walk-forward check, however, Random Forest performs worse than Logistic Regression (mean accuracy 51.7% vs LR's 54.8% and Majority Class's 55.3%; see outputs/walk_forward_results.csv). Given the walk-forward gap and that the single-split tie sits inside the ~3-point-wide 95% confidence intervals, Random Forest is not presented as a headline improvement -- if anything it generalizes slightly worse across folds than the linear model.
-
-Project Structure additions
-src/
-├── models.py    # (updated) adds make_rf_pipeline() / fit_predict_rf()
-notebooks/
-└── stock_prediction.ipynb   # (updated) adds Section 16b: Model Comparison on the Engineered Feature Set
-
-
-
-
 
 ## Results
 
@@ -209,7 +210,8 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/stock_prediction.i
 
 ## Requirements
 
-See `requirements.txt` (pinned to the versions actually used). Developed with **Python 3.10.8**.
+See `requirements.txt` (pinned to the versions actually used). Developed with **Python 3.12.3**, the interpreter
+that produced the notebook's committed outputs (see `language_info` in `notebooks/stock_prediction.ipynb`).
 
 ```
 pandas==2.3.3
@@ -231,7 +233,8 @@ Stock-ml/
 ├── src/
 │   ├── data.py                    # download_data(), load_data()
 │   ├── features.py                # build_target(), build_raw_features(), build_indicators(), build_dataset()
-│   ├── models.py                  # persistence, majority, and the shared sklearn Pipeline
+│   ├── models.py                  # persistence, majority, shared LR pipeline, and the RF pipeline
+│   │                              #   (make_rf_pipeline() / fit_predict_rf() -- web-version 2nd model)
 │   └── evaluation.py              # chronological split, metrics, walk-forward, required plots
 ├── outputs/
 │   ├── comparison_table.csv
@@ -240,8 +243,6 @@ Stock-ml/
 │   ├── predictions.png
 │   └── predictions_zoom.png
 ├── requirements.txt
-├── PLAN.md                        # approved Stage 1 design
-├── CLAUDE.md                      # assignment requirements and project guidance
 └── README.md
 ```
 
