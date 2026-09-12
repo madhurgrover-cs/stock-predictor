@@ -208,6 +208,22 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/stock_prediction.i
 # or open notebooks/stock_prediction.ipynb in Jupyter and Restart & Run All
 ```
 
+## Interactive App (supplementary, not a graded deliverable)
+
+This branch adds `streamlit_app.py`, a read-only viewer over the committed `outputs/` artifacts (comparison
+table, walk-forward results, class balance, prediction plot). It is not part of the PDF or web-version
+requirements list and is not included in the graded submission on `main` -- it exists only for convenience when
+sharing results interactively.
+
+```bash
+pip install -r requirements-streamlit.txt
+streamlit run streamlit_app.py
+```
+
+Deployment on Streamlit Community Cloud uses `requirements-streamlit.txt` (loose `>=` pins, so the build machine
+can resolve prebuilt wheels) and `runtime.txt` instead of the exact-pinned `requirements.txt`, which stays
+reserved for reproducing the graded notebook.
+
 ## Requirements
 
 See `requirements.txt` (pinned to the versions actually used). Developed with **Python 3.12.3**, the interpreter
