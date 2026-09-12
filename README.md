@@ -103,14 +103,14 @@ Result, reported as-is:
 | Approach | Accuracy | Balanced Accuracy | % Predicted Up |
 |---|---:|---:|---:|
 | Engineered Features (LR) | 54.82% | 50.91% | 98.28% |
-| Engineered (Random Forest) | 54.82% | 52.97% | 73.07% |
+| Engineered (Random Forest) | 54.73% | 52.87% | 73.16% |
 
-On the single split, Random Forest ties Logistic Regression exactly (574/1,047 correct each), while predicting Up
-far less often and reaching a somewhat higher balanced accuracy. In the walk-forward check, however, Random Forest
-performs worse than Logistic Regression (mean accuracy 51.7% vs LR's 54.8% and Majority Class's 55.3%; see
-`outputs/walk_forward_results.csv`). Given the walk-forward gap and that the single-split tie sits inside the
-~3-point-wide 95% confidence intervals, Random Forest is not presented as a headline improvement -- if anything it
-generalizes slightly worse across folds than the linear model.
+On the single split, Random Forest comes within one call of Logistic Regression (573/1,047 vs 574/1,047 correct),
+while predicting Up far less often and reaching a somewhat higher balanced accuracy. In the walk-forward check,
+Random Forest performs worse than Logistic Regression (mean accuracy 51.7% vs LR's 54.8% and Majority Class's
+55.3%; see `outputs/walk_forward_results.csv`). Given the walk-forward gap and that the single-split near-tie sits
+inside the ~3-point-wide 95% confidence intervals, Random Forest is not presented as a headline improvement -- if
+anything it generalizes slightly worse across folds than the linear model.
 
 ### Train/Test Split
 
