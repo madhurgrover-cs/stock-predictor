@@ -163,9 +163,10 @@ def plot_class_balance(balance_df: pd.DataFrame, path: Path = None):
     ax.bar(x - width / 2, balance_df["pct_up"] * 100, width, label="Up", color="#2ca02c")
     ax.bar(x + width / 2, balance_df["pct_down"] * 100, width, label="Down", color="#d62728")
     ax.axhline(50, color="gray", linestyle="--", linewidth=1)
+    ax.set_ylim(0, 100)
     ax.set_xticks(x)
-    ax.set_xticklabels(balance_df.index)
-    ax.set_ylabel("% of samples")
+    ax.set_xticklabels(balance_df.index, fontsize=11)
+    ax.set_ylabel("Percent of samples (%)")
     ax.set_title("Class Balance: Up vs Down by Partition")
     ax.legend()
     for i, row in enumerate(balance_df.itertuples()):
@@ -196,6 +197,7 @@ def plot_predictions(df_close: pd.Series, predictions: pd.DataFrame, path: Path 
     axes[0].plot(test_close.index, test_close.values, color="#1f77b4")
     axes[0].set_title("SPY Close Price (Test Window)")
     axes[0].set_ylabel("Close ($)")
+    axes[0].set_xlabel("Date")
 
     raster = np.vstack([predictions["y_true"].values, predictions["engineered"].values])
     x_start, x_end = mdates.date2num(predictions.index[0]), mdates.date2num(predictions.index[-1])
@@ -204,6 +206,7 @@ def plot_predictions(df_close: pd.Series, predictions: pd.DataFrame, path: Path 
     axes[1].set_yticks([0.5, 1.5])
     axes[1].set_yticklabels(["Predicted", "Actual"])
     axes[1].set_title("Actual vs Predicted Direction (Engineered Model; green=Up, red=Down)")
+    axes[1].set_xlabel("Date")
 
     axes[2].plot(predictions.index, roll_acc_eng.values, label="Engineered", color="#1f77b4")
     axes[2].plot(predictions.index, roll_acc_maj.values, label="Majority", color="#7f7f7f", linestyle="--")
@@ -214,9 +217,12 @@ def plot_predictions(df_close: pd.Series, predictions: pd.DataFrame, path: Path 
     axes[2].legend(loc="upper right")
 
     axes[0].set_xlim(predictions.index[0], predictions.index[-1])
-    axes[2].xaxis.set_major_locator(mdates.AutoDateLocator())
-    axes[2].xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
-    fig.autofmt_xdate(rotation=30)
+    for ax in axes:
+        ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+        ax.tick_params(axis="x", labelbottom=True, labelrotation=30)
+        for label in ax.get_xticklabels():
+            label.set_ha("right")
     fig.tight_layout()
     fig.savefig(path, dpi=150)
     plt.close(fig)
@@ -228,13 +234,18 @@ def plot_predictions_zoom(predictions: pd.DataFrame, n_days: int = 60, path: Pat
     path = path or OUTPUTS_DIR / "predictions_zoom.png"
     zoom = predictions.tail(n_days)
 
+    n_up_pred = int((zoom["engineered"] == 1).sum())
+
     fig, ax = plt.subplots(figsize=(13, 3.5))
     raster = np.vstack([zoom["y_true"].values, zoom["engineered"].values])
     ax.imshow(raster, aspect="auto", cmap="RdYlGn", vmin=0, vmax=1,
               extent=[0, len(zoom), 0, 2], interpolation="none")
     ax.set_yticks([0.5, 1.5])
     ax.set_yticklabels(["Predicted", "Actual"])
-    ax.set_title(f"Actual vs Predicted Direction — Last {len(zoom)} Test Days (Engineered Model)")
+    ax.set_title(
+        f"Actual vs Predicted Direction — Last {len(zoom)} Test Days (Engineered Model; "
+        f"predicted Up on {n_up_pred}/{len(zoom)} days)"
+    )
     tick_pos = np.arange(len(zoom))
     step = max(1, len(zoom) // 12)
     ax.set_xticks(tick_pos[::step])
