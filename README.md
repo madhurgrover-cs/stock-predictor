@@ -1,6 +1,6 @@
 # Stock Price Movement Predictor
 
-**GCSRM Recruitment 2026 | Technical Track: AI & Machine Learning (Year 2) | Option A**
+
 
 SPY (SPDR S&P 500 ETF Trust) next-day direction (Up/Down) classification from daily OHLCV data.
 
